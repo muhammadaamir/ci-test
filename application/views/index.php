@@ -29,6 +29,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <div class="row">
                         <button id="go">Search</button>
                     </div>
+                    <div class="row">
+                        <button id="sort">Sort by Provider Name</button>
+                    </div>
                 </div>
                 <div class="col-md-8">
                     <div class="row">

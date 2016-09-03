@@ -11,6 +11,8 @@ CISearch = function ()
     var search_results_div = '.search_results';
     var result_displayed = 0;
     var search_results;
+    var original_search_results;
+    var sort_order = 'desc';
     /**
      * Constructor
      * 
@@ -107,6 +109,21 @@ CISearch = function ()
 
         });
     }
+    
+    //http://stackoverflow.com/questions/881510/sorting-json-by-values
+    function sortResults(prop, order) {
+        search_results = JSON.parse(JSON.stringify(original_search_results));
+    search_results = search_results.sort(function(a, b) {
+        if (order == 'asc') {
+            sort_order = 'desc';
+            return (a[prop] > b[prop]) ? 1 : ((a[prop] < b[prop]) ? -1 : 0);
+        } else {
+            sort_order = 'asc';
+            return (b[prop] > a[prop]) ? 1 : ((b[prop] < a[prop]) ? -1 : 0);
+        }
+    });
+    
+}
     function _bindEvents() {
         //Bookmark
         $(document).on('click', search_button, function () {
@@ -118,6 +135,7 @@ CISearch = function ()
             var error_details = [];
             result_displayed = 0;
             search_results = '';
+            original_search_results = '';
             if (city_id === '') {
                 error_details.push('Please select city');
                 error = true;
@@ -147,6 +165,7 @@ CISearch = function ()
                     response = JSON.parse(response);
                     total_results = response.Providers.length;
                     search_results = response.Providers;
+                    original_search_results = JSON.parse(JSON.stringify(search_results));
                     if (total_results == 0)
                         $(search_results_div).html('No record found.');
                     else {
@@ -160,6 +179,12 @@ CISearch = function ()
 
         $(document).on('click', '#load-more', function () {
             $(this).remove();
+            _displayResults();
+        });
+        
+        $(document).on('click', '#sort', function () {
+            sortResults('firstName', sort_order);
+            $(search_results_div).html('');
             _displayResults();
         });
         
