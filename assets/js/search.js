@@ -125,7 +125,7 @@ CISearch = function ()
     
 }
     function _bindEvents() {
-        //Bookmark
+        
         $(document).on('click', search_button, function () {
             var total_results = 0;
             var city_id = $(city).val();
@@ -135,6 +135,7 @@ CISearch = function ()
             var error_details = [];
             result_displayed = 0;
             search_results = '';
+            sort_order = 'desc';
             original_search_results = '';
             if (city_id === '') {
                 error_details.push('Please select city');

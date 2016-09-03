@@ -42,7 +42,7 @@ class Search extends CI_Model {
             $row = $record->row();
             $search_id = $row->id;
             $results_arr = $this->searchresults->get_records($search_id);
-            return json_encode(['Providers' => $results_arr]);
+            return json_encode(array('Providers' => $results_arr));
         } else {
             //insert search record
             $this->db->insert('search', $this);
@@ -58,7 +58,7 @@ class Search extends CI_Model {
     public function opensearch() {
         $search_text = $_POST['open_search_text'];
         $results_arr = $this->searchresults->get_search_records($search_text);
-        return json_encode(['Providers' => $results_arr]);
+        return json_encode(array('Providers' => $results_arr));
     }
 
 }
