@@ -3,10 +3,14 @@ CISearch = function ()
     // Private members
     var that = this;
     var _ajax = 0;
-    var ajax_base_url = window.location.origin+'/ajax';
+    var base_url = window.location.origin;
+    var ajax_base_url = base_url + '/ajax';
     var speciality = '#speciality';
     var city = '#city';
     var search_button = '#go';
+    var search_results_div = '.search_results';
+    var result_displayed = 0;
+    var search_results;
     /**
      * Constructor
      * 
@@ -25,103 +29,182 @@ CISearch = function ()
     };
 
     function _initGetSpeciality() {
-            $.ajax({
-                type: "GET",
-                url: ajax_base_url+'/specialities',
-                beforeSend: function () {
-                    //do nothing
-                },
-                success: function (response) {
-                    $(speciality).find(':first-child').remove();
-                    $(speciality).prepend('<option value="">Select Speciality</option>');
-                    response = JSON.parse(response);
-                    
-                    $(response.Specialities).each(function () {
-                        var option = $('<option />');
-                        option.attr('value', this.SpecialityID).text(this.SpecialityName);
-                        $(speciality).append(option);
-                    });
-                    
-                },
-                error: function (response) {
-                    alert("Error :"+response);
-                },
-            });
+        $.ajax({
+            type: "GET",
+            url: ajax_base_url + '/specialities',
+            beforeSend: function () {
+                //do nothing
+            },
+            success: function (response) {
+                $(speciality).find(':first-child').remove();
+                $(speciality).prepend('<option value="">Select Speciality</option>');
+                response = JSON.parse(response);
+
+                $(response.Specialities).each(function () {
+                    var option = $('<option />');
+                    option.attr('value', this.SpecialityID).text(this.SpecialityName);
+                    $(speciality).append(option);
+                });
+
+            },
+            error: function (response) {
+                alert("Error :" + response);
+            },
+        });
     }
 
     function _initGetCity() {
-            $.ajax({
-                type: "GET",
-                url: ajax_base_url+'/cities',
-                beforeSend: function () {
-                    //do nothing
-                },
-                success: function (response) {
-                    response = JSON.parse(response);
-                    $(city).find(':first-child').remove();
-                    $(city).prepend('<option value="">Select City, State</option>');
-                    $(response.Cities).each(function () {
-                        var option = $('<option />');
-                        option.attr('value', this.city_id).attr('state_id',this.state_id).text(this.city_name + ", " + this.state_id );
-                        $(city).append(option);
-                    });
-                },
-                error: function (response) {
-                    alert("Error :"+response);
-                },
-            });
+        $.ajax({
+            type: "GET",
+            url: ajax_base_url + '/cities',
+            beforeSend: function () {
+                //do nothing
+            },
+            success: function (response) {
+                response = JSON.parse(response);
+                $(city).find(':first-child').remove();
+                $(city).prepend('<option value="">Select City, State</option>');
+                $(response.Cities).each(function () {
+                    var option = $('<option />');
+                    option.attr('value', this.city_id).attr('state_id', this.state_id).text(this.city_name + ", " + this.state_id);
+                    $(city).append(option);
+                });
+            },
+            error: function (response) {
+                alert("Error :" + response);
+            },
+        });
+    }
+
+    function _displayResults() {
+        //debugger;
+        $(search_results).each(function () {
+
+            var image = base_url + '/assets/img/icon_no_logo.gif';
+            if (typeof this.profile_image !== 'undefined') {
+                if (this.profile_image.length) {
+                    image = this.profile_image;
+                }
+            }
+            //if(typeof this.firstName !== 'undefined' )
+            var search_result = '<div class="media"><div class="media-left">' +
+                    '<img class="media-object" src="' + image + '">' +
+                    '</div>' +
+                    '<div class="media-body">' +
+                    '<h4 class="media-heading">' + this.firstName + ' ' + this.lastName + '</h4>' +
+                    this.specialityName + '<br />' +
+                    this.city + ', ' + this.state + ', ' + this.postcode + '<br />' +
+                    '</div>' +
+                    '</div>';
+            $(search_results_div).append(search_result);
+            search_results.shift();
+            result_displayed++;
+            if (result_displayed % 5 == 0) {
+                $(search_results_div).append('<button id="load-more">more</button>');
+                return false;
+            }
+
+
+        });
     }
     function _bindEvents() {
         //Bookmark
         $(document).on('click', search_button, function () {
+            var total_results = 0;
             var city_id = $(city).val();
-            var state_id = $(city+" option:selected").attr("state_id");
+            var state_id = $(city + " option:selected").attr("state_id");
             var speciality_id = $(speciality).val();
             var error = false;
             var error_details = [];
-            if(city_id === '') {
+            result_displayed = 0;
+            search_results = '';
+            if (city_id === '') {
                 error_details.push('Please select city');
-                    error=true;
+                error = true;
             }
-            if(speciality_id === '') {
+            if (speciality_id === '') {
                 error_details.push('Please select state');
-                error=true;
+                error = true;
             }
-            if(error) {
+            if (error) {
                 alert(error_details);
                 return false;
             }
             var data = {
-                'city_id' : city_id,
-                'state_id' : state_id,
+                'city_id': city_id,
+                'state_id': state_id,
                 'speciality_id': speciality_id
-                
+
             };
             $.ajax({
                 type: "POST",
-                url: ajax_base_url+'/search',
+                url: ajax_base_url + '/search',
                 data: data,
-                beforeSend: function (msg) {
-
+                beforeSend: function () {
+                    $(search_results_div).html('Searching');
                 },
                 success: function (response) {
-                    console.log(response);
+                    response = JSON.parse(response);
+                    total_results = response.Providers.length;
+                    search_results = response.Providers;
+                    if (total_results == 0)
+                        $(search_results_div).html('No record found.');
+                    else {
+                        $(search_results_div).html('');
+                        _displayResults();
+
+                    }
                 }
             });
         });
+
+        $(document).on('click', '#load-more', function () {
+            $(this).remove();
+            _displayResults();
+        });
+        
+        $(document).on('click', '#open_search', function () {
+            var data = {
+                'open_search_text': $('#open_search_text').val()
+
+            };
+            
+            $.ajax({
+                type: "POST",
+                url: ajax_base_url + '/opensearch',
+                data: data,
+                beforeSend: function () {
+                    $(search_results_div).html('Searching');
+                },
+                success: function (response) {
+                    response = JSON.parse(response);
+                    total_results = response.Providers.length;
+                    search_results = response.Providers;
+                    if (total_results == 0)
+                        $(search_results_div).html('No record found.');
+                    else {
+                        $(search_results_div).html('');
+                        _displayResults();
+                    }
+                }
+            });
+           
+        });
+        
+        $("#open_search_text").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#open_search").click();
+            }
+        });
     }
 
-   
+
 };
 
-objCISearch= new CISearch();
+objCISearch = new CISearch();
 $(document).ready(function () {
     objCISearch.init();
     objCISearch.initFillDropdowns();
 
 });
-
-function callBackFunction(json){
-    alert("AAA");
-  console.log(json);
-}

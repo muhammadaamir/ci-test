@@ -55,4 +55,10 @@ class Search extends CI_Model {
         }
     }
 
+    public function opensearch() {
+        $search_text = $_POST['open_search_text'];
+        $results_arr = $this->searchresults->get_search_records($search_text);
+        return json_encode(['Providers' => $results_arr]);
+    }
+
 }

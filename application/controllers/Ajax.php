@@ -18,5 +18,10 @@ class Ajax extends CI_Controller {
         $this->load->model('searchresults');
         echo $result = $this->search->search();
     }
-
+    
+    public function opensearch() {
+        $this->load->model('search');
+        $this->load->model('searchresults');
+        echo $result = $this->search->opensearch();
+    }
 }

@@ -54,5 +54,18 @@ class Searchresults extends CI_Model {
             $this->db->insert_batch('search_results', $providers);
         }
     }
+    
+    public function get_search_records($search_text) {
+        $array = array(
+            'firstName' => $search_text, 
+            'lastName' => $search_text,
+            'specialityName' => $search_text,
+            'city' => $search_text,
+            'state' => $search_text,
+            );
+        $this->db->or_like($array);
+        $query = $this->db->get('search_results');
+        return $query->result_array();
+    }
 
 }
